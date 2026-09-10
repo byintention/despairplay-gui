@@ -8,6 +8,8 @@
 
 The folder name `Airplay GUI` has a space. Quote the path in shells. The Python package is `despairplay`; the console script is `despairplay`.
 
+This repository is **byintention** (`origin` uses `github-intention`). Commits must not use ThePracticeNick or `nick@the-practice.co.uk`.
+
 ## Layout
 
 | Path | Role |

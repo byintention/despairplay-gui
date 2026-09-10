@@ -16,6 +16,8 @@ Python GTK4 diagnostic app. Read [docs/DESIGN.md](docs/DESIGN.md) before adding 
 
 Do **not** `apt`/install system-wide packages on this machine without explaining them first, and only as a last resort. See `.cursor/rules/no-system-packages.mdc`. List the command and wait.
 
+GitHub: **byintention** only (`git@github-intention:byintention/despairplay-gui.git`). Do not commit or push as ThePracticeNick / `nick@the-practice.co.uk`. This repo has a local `user.email` of `1419468+byintention@users.noreply.github.com`.
+
 ## Skills and rules
 
 - Always-on: `.cursor/rules/python-gtk.mdc`, `.cursor/rules/no-system-packages.mdc`
