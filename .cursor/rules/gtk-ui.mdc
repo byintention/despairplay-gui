@@ -1,0 +1,25 @@
+---
+description: GTK4/libadwaita UI patterns for DespairPlay (Adw widgets, GI imports, no GTK in engine/tests).
+globs: src/despairplay/ui/**/*.py
+alwaysApply: false
+---
+
+# GTK UI
+
+- Import GI only via `despairplay.ui.gi_imports` (`Gtk` 4.0, `Adw` 1). Never `gi.require_version` elsewhere.
+- Use `Adw.Application` / `Adw.ApplicationWindow` / `Adw.NavigationSplitView` (GNOME Settings sidebar) + `Adw.ToolbarView` + `Adw.HeaderBar`. Content via `set_content()`, not GTK3 `add()`.
+- Sidebar: `navigation-sidebar` list boxes — Overview, AirPlay devices, This PC sinks. Main: Ready bar / `Adw.Banner` + static check cards (not boxed-list `ActionRow`s). Theme `*-symbolic` icons only (see `docs/DESIGN.md`). Selecting a device does not set the default sink.
+- Keep widgets here; checks/fixes stay in `engine/` so tests stay headless.
+- Long work: `GLib.idle_add` / `GLib.timeout_add` back to the main thread. Do not block the UI on `pw-dump` or D-Bus.
+- Override GObject vfuncs as `do_activate` (not snake_case). Chain up `do_startup` before using Adw/GTK APIs.
+
+```python
+# ❌ BAD — GI versions scattered, GTK3 packing
+from gi.repository import Gtk
+window.add(header)
+
+# ✅ GOOD
+from despairplay.ui.gi_imports import Adw, Gtk
+toolbar.add_top_bar(header)
+window.set_content(toolbar)
+```

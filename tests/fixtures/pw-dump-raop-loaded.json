@@ -1,0 +1,26 @@
+[
+  {
+    "id": 40,
+    "type": "PipeWire:Interface:Module",
+    "info": {
+      "name": "libpipewire-module-raop-discover",
+      "filename": "/usr/lib/x86_64-linux-gnu/pipewire-0.3/libpipewire-module-raop-discover.so",
+      "props": {
+        "module.name": "libpipewire-module-raop-discover"
+      }
+    }
+  },
+  {
+    "id": 50,
+    "type": "PipeWire:Interface:Node",
+    "info": {
+      "props": {
+        "media.class": "Audio/Sink",
+        "node.name": "raop_output.LivingRoom",
+        "node.description": "Living Room",
+        "factory.name": "support.raop.sink",
+        "raop.ip": "192.168.1.20"
+      }
+    }
+  }
+]

@@ -1,0 +1,15 @@
+---
+description: Core Python/GTK conventions for DespairPlay — src layout, Ruff, changelog, Ubuntu packages, no GTK in tests.
+alwaysApply: true
+---
+
+# DespairPlay
+
+- Package lives in `src/despairplay/`. Import `despairplay`; console script `despairplay`. Folder name `Airplay GUI` has a space — quote it in shells.
+- Engine in `src/despairplay/engine/` (pure Python). UI in `src/despairplay/ui/`. Unit tests must not import GTK.
+- Ruff is linter **and** formatter (no Black). `from __future__ import annotations`, type hints on public functions, `logging.getLogger(__name__)`, no `print` in library code.
+- User-visible checks/fixes get a `CHANGELOG.md` Unreleased bullet. Read `docs/DESIGN.md` before adding behaviour.
+- Ubuntu/Zorin package names (`libpipewire-0.3-modules`). Never Arch `pipewire-zeroconf`. Detect RAOP modules by `.so` path.
+- Privileged helper: argv allow-list, no `shell=True`. Do not auto-set the default sink. Do not auto-edit nsswitch/resolved in v1.
+- Venv must use `--system-site-packages`. GTK comes from apt GI packages, not pip. Do not install those (or any system packages) on this machine without explaining first; last resort only.
+- Linux sends **RAOP / AirPlay 1** only. AirPlay 2-only devices (`_airplay._tcp` without `_raop._tcp`) are a first-class diagnosis, not “device not found”.

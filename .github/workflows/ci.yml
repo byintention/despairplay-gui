@@ -1,0 +1,35 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install system Python and GI
+        # CI runner only (ephemeral VM). Do not apt-install on the developer machine.
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            python3 \
+            python3-pip \
+            python3-venv \
+            python3-gi \
+            gir1.2-gtk-4.0 \
+            gir1.2-adw-1 \
+            gir1.2-glib-2.0
+
+      - name: Create venv with system site-packages
+        run: python3 -m venv --system-site-packages .venv
+
+      - name: Install package and dev tools
+        run: |
+          .venv/bin/python -m pip install -U pip
+          .venv/bin/python -m pip install -e '.[dev]'
+
+      - name: Lint, typecheck, and test
+        run: make check

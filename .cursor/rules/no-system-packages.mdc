@@ -1,0 +1,15 @@
+---
+description: Never install system-wide packages on the developer machine without explaining first; last resort only.
+alwaysApply: true
+---
+
+# No surprise system packages
+
+On this workstation, **do not** install distro/system packages (`apt`, `apt-get`, `dpkg`, `nala`, `snap`, `flatpak`, `pkcon`, `dnf`, `pip install` outside `.venv`, etc.) unless Nick has already agreed.
+
+1. Prefer the project venv (`make install-dev`) and tools already on the machine.
+2. If a system package might be missing, **explain what it is, why it is needed, and the exact command** — then wait. Do not run it.
+3. System-wide install is a **last resort** after venv, existing GI packages, and documenting the command for Nick to run himself.
+4. GitHub Actions may `apt` on the CI runner only (ephemeral VM). That exception does not apply to this Linux desktop.
+
+`sudo` for package installs is never “just to unblock make check”.

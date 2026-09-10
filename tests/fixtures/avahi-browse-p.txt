@@ -1,0 +1,2 @@
+=;wlan0;IPv4;AABBCCDDEEFF@MagniFi Mini AX-4652;_raop._tcp;local;aud8518sp2-slc-32b-c4a-user.local;192.168.1.102;7000;"et=0,1" "cn=0,1" "tp=UDP" "am=K54AP"
+=;wlan0;IPv4;MagniFi Mini AX-4652;_airplay._tcp;local;aud8518sp2-slc-32b-c4a-user.local;192.168.1.102;7000;

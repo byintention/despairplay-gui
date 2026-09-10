@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=DespairPlay
+Comment=Diagnose Linux AirPlay (RAOP) sender setup
+Exec=despairplay
+Icon=audio-speakers
+Terminal=false
+Categories=AudioVideo;Audio;Utility;
+StartupNotify=true
+DBusActivatable=false

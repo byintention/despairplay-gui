@@ -1,0 +1,6 @@
+Status: active
+
+To                         Action      From
+--                         ------      ----
+5353/udp                   ALLOW       Anywhere
+5353/udp (v6)              ALLOW       Anywhere (v6)

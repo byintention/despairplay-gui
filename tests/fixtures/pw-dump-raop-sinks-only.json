@@ -1,0 +1,16 @@
+[
+  {
+    "id": 80,
+    "type": "PipeWire:Interface:Node",
+    "info": {
+      "props": {
+        "media.class": "Audio/Sink",
+        "media.name": "RAOP to MagniFi Mini AX-4652",
+        "node.description": "MagniFi Mini AX-4652",
+        "node.name": "raop_sink.aud8518sp2-slc-32b-c4a-user.local.192.168.1.102.7000",
+        "node.network": true,
+        "sess.media": "raop"
+      }
+    }
+  }
+]
