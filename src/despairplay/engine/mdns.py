@@ -201,7 +201,7 @@ def check_mdns_speakers(host: Host) -> CheckResult:
             status=Status.WARN,
             reason="Could not browse mDNS (Avahi D-Bus)",
             evidence=_EVIDENCE,
-            group=Group.SPEAKERS,
+            group=Group.NETWORK,
         )
     labels = raop_sink_labels(host.pw_dump_json())
     devices = group_devices(records, labels)
@@ -214,7 +214,7 @@ def check_mdns_speakers(host: Host) -> CheckResult:
             status=Status.WARN,
             reason="No AirPlay speakers advertised on the network",
             evidence=_EVIDENCE,
-            group=Group.SPEAKERS,
+            group=Group.NETWORK,
         )
     if raop and not ap2:
         return CheckResult(
@@ -223,7 +223,7 @@ def check_mdns_speakers(host: Host) -> CheckResult:
             status=Status.OK,
             reason=", ".join(raop),
             evidence=_EVIDENCE,
-            group=Group.SPEAKERS,
+            group=Group.NETWORK,
         )
     if raop and ap2:
         return CheckResult(
@@ -235,7 +235,7 @@ def check_mdns_speakers(host: Host) -> CheckResult:
                 f"{', '.join(ap2)}"
             ),
             evidence=_EVIDENCE,
-            group=Group.SPEAKERS,
+            group=Group.NETWORK,
         )
     return CheckResult(
         check_id="mdns-speakers",
@@ -243,5 +243,5 @@ def check_mdns_speakers(host: Host) -> CheckResult:
         status=Status.WARN,
         reason=("AirPlay 2 only (Linux cannot send): " + ", ".join(ap2)),
         evidence=_EVIDENCE,
-        group=Group.SPEAKERS,
+        group=Group.NETWORK,
     )

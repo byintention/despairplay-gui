@@ -16,7 +16,7 @@ Follow [docs/DESIGN.md](../../../docs/DESIGN.md) and [CONTRIBUTING.md](../../../
 2. **Parse structured data**: Avahi D-Bus (`org.freedesktop.Avahi`), `pw-dump` JSON, `dpkg-query`, file existence. Do not scrape `avahi-browse` as the primary path.
 3. **Fixture + unit test** in `tests/fixtures/` + `tests/`. Default pytest is offline. Live network tests: `@pytest.mark.integration` and never run in CI.
 4. **Ubuntu names**: `libpipewire-0.3-modules`, `avahi-daemon`, `libnss-mdns`. Detect RAOP by `.so` under `/usr/lib/*/pipewire-0.3/`, not Arch `pipewire-zeroconf`.
-5. **UI row** in Issues (and the matching System/Network/Speakers section). **Fix** only if the action is allow-listed and you show the exact commands first.
+5. **UI row** in Audio system or Network. **Fix** only if the action is allow-listed and you show the exact commands first.
 6. **Changelog**: user-visible check or fix → bullet under `## [Unreleased]` in `CHANGELOG.md`.
 
 ## Fixes

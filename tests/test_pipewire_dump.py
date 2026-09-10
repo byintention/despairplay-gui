@@ -14,11 +14,13 @@ from despairplay.engine.pipewire import (
     check_raop_autostart,
     check_raop_discover_loaded,
     check_raop_sinks,
+    default_audio_sink_name,
+    local_sinks,
     raop_discover_is_loaded,
     raop_sink_labels,
 )
 from despairplay.engine.result import Status
-from despairplay.engine.suite import run_checks
+from despairplay.engine.suite import run_checks, run_scan
 from fakes import FakeHost
 
 FIXTURES = Path(__file__).parent / "fixtures"
@@ -42,6 +44,65 @@ def test_parse_no_raop_dump() -> None:
     dump = _load_dump("pw-dump-no-raop.json")
     assert raop_discover_is_loaded(dump) is False
     assert raop_sink_labels(dump) == ()
+    sinks = local_sinks(dump)
+    assert len(sinks) == 1
+    assert sinks[0].node_name == "alsa_output.pci-0000_00_1f.3.analog-stereo"
+
+
+def test_local_sinks_skip_raop_and_mark_default() -> None:
+    dump = _load_dump("pw-dump-local-sinks.json")
+    assert raop_sink_labels(dump) == ("MagniFi Mini AX-4652",)
+    sinks = local_sinks(dump)
+    assert [item.node_name for item in sinks] == [
+        "alsa_output.pci-0000_0d_00.4.analog-stereo",
+        "alsa_output.pci-0000_0b_00.1.hdmi-stereo",
+        "alsa_output.pci-0000_0d_00.4.iec958-stereo",
+    ]
+    analog, hdmi, spdif = sinks
+    assert analog.is_default is True
+    assert analog.is_loaded is True
+    assert analog.active_port == "Line Out"
+    assert analog.ports == ("Line Out",)
+    assert analog.icon_name == "audio-card-symbolic"
+    assert hdmi.is_default is False
+    assert hdmi.active_port == "HDMI / DisplayPort"
+    assert hdmi.ports == ("HDMI / DisplayPort",)
+    assert hdmi.icon_name == "audio-card-symbolic"
+    assert spdif.name == "Digital Output (S/PDIF)"
+    assert spdif.is_loaded is False
+    assert spdif.is_default is False
+    assert spdif.profile == "Digital Stereo (IEC958) Output"
+    assert spdif.icon_name == "audio-card-symbolic"
+    assert default_audio_sink_name(dump) == (
+        "alsa_output.pci-0000_0d_00.4.analog-stereo"
+    )
+
+
+def test_local_sinks_use_playback_channels_and_json_default() -> None:
+    dump = _load_dump("pw-dump-channels-only.json")
+    sinks = local_sinks(dump)
+    assert len(sinks) == 1
+    headset = sinks[0]
+    assert headset.is_default is True
+    assert headset.ports == ("FL", "FR")
+    assert headset.icon_name == "audio-headphones-symbolic"
+    assert "monitor" not in " ".join(headset.ports).lower()
+
+
+def test_local_sinks_empty_when_only_raop() -> None:
+    dump = _load_dump("pw-dump-raop-loaded.json")
+    assert local_sinks(dump) == ()
+
+
+def test_run_scan_includes_local_sinks() -> None:
+    result = run_scan(
+        FakeHost(
+            units=_all_units_up(),
+            dump=_load_dump("pw-dump-local-sinks.json"),
+        )
+    )
+    assert len(result.sinks) == 3
+    assert result.sinks[0].is_default is True
 
 
 def test_parse_sinks_only_dump() -> None:

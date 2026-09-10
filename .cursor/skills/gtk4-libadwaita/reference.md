@@ -25,7 +25,7 @@ Icons: theme symbolic names only (`audio-speakers-symbolic`, `audio-headphones-s
 Prefer `Adw.PreferencesPage` wrapping groups, even if this is not a settings app — it matches GNOME spacing.
 
 - `Adw.Banner` — problems only (issues / AirPlay 2-only). All-clear: light grey `.ready-bar` with green circle-tick then “Ready”.
-- `Adw.PreferencesGroup` — System, Network, Speakers, Issues.
+- `Adw.PreferencesGroup` — Audio system, Network.
 - `Adw.ActionRow` — sidebar navigation only. Check results are static `Gtk.Box` cards (no boxed-list hover). Fix will be a real button later.
 - OK: `emblem-default-symbolic` (circle + tick), 28px, CSS `success`. Warn: triangle. Fail: circle with bar. Shapes first, colour second.
 - `Gtk.Button(label="Fix")` via `row.add_suffix(button)` only when a fix id exists. `add_css_class("suggested-action")` for the safe default fix.

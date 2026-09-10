@@ -22,7 +22,7 @@ The folder name `Airplay GUI` has a space. Quote the path in shells. The Python 
 
 1. One module under `engine/` that returns `ok | warn | fail`, a short reason, evidence (command/path), and an optional fix id.
 2. One fixture in `tests/fixtures/` and a parser unit test. Do not import GTK in tests.
-3. Wire it into the Issues list in the UI with a **Fix** action only when the fix is allow-listed and safe.
+3. Wire it into Audio system or Network in the UI with a **Fix** action only when the fix is allow-listed and safe.
 4. Add a bullet under `## [Unreleased]` in `CHANGELOG.md` if the check is user-visible.
 5. Ubuntu package names (`libpipewire-0.3-modules`, `avahi-daemon`), never Arch’s `pipewire-zeroconf`.
 

@@ -19,11 +19,13 @@ from despairplay.engine.network import (
     check_vpn_interfaces,
 )
 from despairplay.engine.pipewire import (
+    LocalSink,
     check_pipewire_user_units,
     check_raop_autostart,
     check_raop_discover_loaded,
     check_raop_modules,
     check_raop_sinks,
+    local_sinks,
     raop_sink_labels,
 )
 from despairplay.engine.result import CheckResult
@@ -33,6 +35,7 @@ from despairplay.engine.result import CheckResult
 class ScanResult:
     checks: tuple[CheckResult, ...]
     devices: tuple[AirPlayDevice, ...]
+    sinks: tuple[LocalSink, ...]
 
 
 def run_scan(host: Host | None = None) -> ScanResult:
@@ -52,9 +55,10 @@ def run_scan(host: Host | None = None) -> ScanResult:
         check_mdns_speakers(probe),
     )
     records = probe.avahi_records()
-    labels = raop_sink_labels(probe.pw_dump_json())
+    dump = probe.pw_dump_json()
+    labels = raop_sink_labels(dump)
     devices = group_devices(records or (), labels) if records is not None else ()
-    return ScanResult(checks=checks, devices=devices)
+    return ScanResult(checks=checks, devices=devices, sinks=local_sinks(dump))
 
 
 def run_checks(host: Host | None = None) -> tuple[CheckResult, ...]:

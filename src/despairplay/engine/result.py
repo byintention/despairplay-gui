@@ -15,7 +15,6 @@ class Status(str, Enum):
 class Group(str, Enum):
     SYSTEM = "system"
     NETWORK = "network"
-    SPEAKERS = "speakers"
 
 
 @dataclass(frozen=True)

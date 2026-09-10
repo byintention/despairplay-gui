@@ -11,6 +11,7 @@ from despairplay.engine import (
     AirPlayDevice,
     CheckResult,
     Group,
+    LocalSink,
     ScanResult,
     Status,
     apply_user_fix,
@@ -38,8 +39,10 @@ _NETWORK_SKELETON = (
     (130, 200),
     (120, 270),
     (90, 210),
+    (160, 190),
 )
 _AIRPLAY_SKELETON = ((150, 180), (120, 200), (170, 140))
+_THIS_PC_SKELETON = ((160, 140), (180, 100))
 
 
 def _heading(text: str) -> Gtk.Label:
@@ -285,18 +288,20 @@ class MainWindow(Adw.ApplicationWindow):
         self._scan_busy = False
         self._first_scan = True
         self._devices: tuple[AirPlayDevice, ...] = ()
+        self._sinks: tuple[LocalSink, ...] = ()
         self._selected_key = "overview"
         self._ready_bar = self._build_ready_bar()
-        system_block, self._system_rows = _group_block("System")
+        system_block, self._system_rows = _group_block("Audio system")
         network_block, self._network_rows = _group_block("Network")
-        issues_block, self._issues_rows = _group_block("Issues")
         self._system_block = system_block
         self._network_block = network_block
-        self._issues_block = issues_block
         self._device_banner = Adw.Banner()
         self._device_content = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         self._device_content.set_margin_bottom(18)
-        self._title = Adw.WindowTitle(title="Overview", subtitle="System and network")
+        self._title = Adw.WindowTitle(
+            title="Overview",
+            subtitle="Audio system and network",
+        )
         self._refresh_btn = Gtk.Button(icon_name="view-refresh-symbolic")
         self._refresh_btn.add_css_class("flat")
         self._refresh_btn.set_tooltip_text("Refresh")
@@ -330,7 +335,7 @@ class MainWindow(Adw.ApplicationWindow):
         self._setup_list = Gtk.ListBox()
         self._setup_list.add_css_class("navigation-sidebar")
         self._setup_list.set_selection_mode(Gtk.SelectionMode.SINGLE)
-        overview = Adw.ActionRow(title="Overview", subtitle="System and network")
+        overview = Adw.ActionRow(title="Overview", subtitle="Audio system and network")
         overview.add_prefix(Gtk.Image(icon_name="emblem-system-symbolic"))
         _ellipsize_labels(overview)
         self._setup_list.append(overview)
@@ -342,12 +347,10 @@ class MainWindow(Adw.ApplicationWindow):
         self._airplay_list.set_selection_mode(Gtk.SelectionMode.NONE)
         self._airplay_list.connect("row-selected", self._on_airplay_selected)
 
-        this_pc = Gtk.ListBox()
-        this_pc.add_css_class("navigation-sidebar")
-        this_pc.set_selection_mode(Gtk.SelectionMode.NONE)
-        this_pc.append(
-            _muted_row("This PC outputs", "Sink list is not implemented yet")
-        )
+        self._this_pc_list = Gtk.ListBox()
+        self._this_pc_list.add_css_class("navigation-sidebar")
+        self._this_pc_list.set_selection_mode(Gtk.SelectionMode.NONE)
+        self._this_pc_list.connect("row-selected", self._on_this_pc_selected)
 
         column = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         column.set_size_request(_SIDEBAR_WIDTH, -1)
@@ -355,7 +358,7 @@ class MainWindow(Adw.ApplicationWindow):
         column.append(_heading("AirPlay"))
         column.append(self._airplay_list)
         column.append(_heading("This PC"))
-        column.append(this_pc)
+        column.append(self._this_pc_list)
 
         scrolled = Gtk.ScrolledWindow()
         scrolled.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
@@ -400,7 +403,6 @@ class MainWindow(Adw.ApplicationWindow):
         overview_page = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         overview_page.append(self._system_block)
         overview_page.append(self._network_block)
-        overview_page.append(self._issues_block)
         overview_page.set_margin_bottom(18)
         overview_scrolled = Gtk.ScrolledWindow()
         overview_scrolled.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
@@ -431,7 +433,6 @@ class MainWindow(Adw.ApplicationWindow):
 
     def _show_first_load_skeleton(self) -> None:
         self._fill_status_bar(Status.OK, "Ready", skeleton=True)
-        self._issues_block.set_visible(False)
         _fill_skeleton_card(self._system_rows, _SYSTEM_SKELETON)
         _fill_skeleton_card(self._network_rows, _NETWORK_SKELETON)
         self._guard = True
@@ -439,6 +440,12 @@ class MainWindow(Adw.ApplicationWindow):
         self._airplay_list.set_selection_mode(Gtk.SelectionMode.NONE)
         for title_width, sub_width in _AIRPLAY_SKELETON:
             self._airplay_list.append(
+                _skeleton_sidebar_row(title_width=title_width, sub_width=sub_width)
+            )
+        _clear_list(self._this_pc_list)
+        self._this_pc_list.set_selection_mode(Gtk.SelectionMode.NONE)
+        for title_width, sub_width in _THIS_PC_SKELETON:
+            self._this_pc_list.append(
                 _skeleton_sidebar_row(title_width=title_width, sub_width=sub_width)
             )
         self._guard = False
@@ -476,7 +483,6 @@ class MainWindow(Adw.ApplicationWindow):
         if not self._first_scan:
             return
         self._first_scan = False
-        self._issues_block.set_visible(True)
 
     def _apply_scan(self, payload: ScanResult | BaseException) -> bool:
         self._scan_busy = False
@@ -491,17 +497,17 @@ class MainWindow(Adw.ApplicationWindow):
                 evidence="run_scan",
                 group=Group.SYSTEM,
             )
-            self._fill_card(self._issues_rows, (failed,))
+            self._fill_card(self._system_rows, (failed,))
             return False
         self._end_first_load()
         self._devices = payload.devices
+        self._sinks = payload.sinks
         self._fill_airplay_sidebar()
+        self._fill_this_pc_sidebar()
         system = tuple(item for item in payload.checks if item.group is Group.SYSTEM)
         network = tuple(item for item in payload.checks if item.group is Group.NETWORK)
-        issues = tuple(item for item in payload.checks if item.status is not Status.OK)
         self._fill_card(self._system_rows, system)
         self._fill_card(self._network_rows, network)
-        self._fill_card(self._issues_rows, issues)
         self._update_banner(payload.checks, payload.devices)
         self._restore_selection()
         return False
@@ -532,6 +538,35 @@ class MainWindow(Adw.ApplicationWindow):
             self._airplay_list.append(row)
         self._guard = False
 
+    def _fill_this_pc_sidebar(self) -> None:
+        self._guard = True
+        _clear_list(self._this_pc_list)
+        if not self._sinks:
+            self._this_pc_list.set_selection_mode(Gtk.SelectionMode.NONE)
+            self._this_pc_list.append(
+                _muted_row(
+                    "No local audio outputs.",
+                    "No PipeWire sinks on this PC",
+                )
+            )
+            self._guard = False
+            return
+        self._this_pc_list.set_selection_mode(Gtk.SelectionMode.SINGLE)
+        for sink in self._sinks:
+            row = Adw.ActionRow(title=sink.name)
+            row.add_prefix(Gtk.Image(icon_name=sink.icon_name))
+            if sink.is_default:
+                row.set_subtitle("Current default")
+            elif not sink.is_loaded:
+                row.set_subtitle("Not currently in use")
+            elif sink.active_port:
+                row.set_subtitle(sink.active_port)
+            elif sink.profile:
+                row.set_subtitle(sink.profile)
+            _ellipsize_labels(row)
+            self._this_pc_list.append(row)
+        self._guard = False
+
     def _restore_selection(self) -> None:
         if self._selected_key == "overview":
             self._show_overview()
@@ -542,9 +577,21 @@ class MainWindow(Adw.ApplicationWindow):
                 if row is not None:
                     self._guard = True
                     self._setup_list.unselect_all()
+                    self._this_pc_list.unselect_all()
                     self._airplay_list.select_row(row)
                     self._guard = False
                     self._show_device(device)
+                    return
+        for index, sink in enumerate(self._sinks):
+            if sink.key == self._selected_key:
+                row = self._this_pc_list.get_row_at_index(index)
+                if row is not None:
+                    self._guard = True
+                    self._setup_list.unselect_all()
+                    self._airplay_list.unselect_all()
+                    self._this_pc_list.select_row(row)
+                    self._guard = False
+                    self._show_sink(sink)
                     return
         self._selected_key = "overview"
         self._show_overview()
@@ -556,6 +603,7 @@ class MainWindow(Adw.ApplicationWindow):
             return
         self._guard = True
         self._airplay_list.unselect_all()
+        self._this_pc_list.unselect_all()
         self._guard = False
         self._selected_key = "overview"
         self._show_overview()
@@ -571,14 +619,31 @@ class MainWindow(Adw.ApplicationWindow):
         device = self._devices[index]
         self._guard = True
         self._setup_list.unselect_all()
+        self._this_pc_list.unselect_all()
         self._guard = False
         self._selected_key = device.key
         self._show_device(device)
 
+    def _on_this_pc_selected(
+        self, _box: Gtk.ListBox, row: Gtk.ListBoxRow | None
+    ) -> None:
+        if self._guard or row is None:
+            return
+        index = row.get_index()
+        if index < 0 or index >= len(self._sinks):
+            return
+        sink = self._sinks[index]
+        self._guard = True
+        self._setup_list.unselect_all()
+        self._airplay_list.unselect_all()
+        self._guard = False
+        self._selected_key = sink.key
+        self._show_sink(sink)
+
     def _show_overview(self) -> None:
         self._stack.set_visible_child_name("overview")
         self._title.set_title("Overview")
-        self._title.set_subtitle("System and network")
+        self._title.set_subtitle("Audio system and network")
 
     def _show_device(self, device: AirPlayDevice) -> None:
         self._stack.set_visible_child_name("device")
@@ -590,6 +655,21 @@ class MainWindow(Adw.ApplicationWindow):
         else:
             self._title.set_subtitle(device.host)
         self._fill_device_page(device)
+
+    def _show_sink(self, sink: LocalSink) -> None:
+        self._stack.set_visible_child_name("device")
+        self._title.set_title(sink.name)
+        if sink.is_default:
+            self._title.set_subtitle("Current default")
+        elif not sink.is_loaded:
+            self._title.set_subtitle("Not currently in use")
+        elif sink.active_port:
+            self._title.set_subtitle(sink.active_port)
+        elif sink.profile:
+            self._title.set_subtitle(sink.profile)
+        else:
+            self._title.set_subtitle("This PC")
+        self._fill_sink_page(sink)
 
     def _fill_device_page(self, device: AirPlayDevice) -> None:
         while (child := self._device_content.get_first_child()) is not None:
@@ -649,6 +729,57 @@ class MainWindow(Adw.ApplicationWindow):
         ]
         if txt_bits:
             card.append(_static_check_row("mDNS TXT", ", ".join(txt_bits), Status.OK))
+        self._device_content.append(block)
+
+    def _fill_sink_page(self, sink: LocalSink) -> None:
+        while (child := self._device_content.get_first_child()) is not None:
+            self._device_content.remove(child)
+        self._device_banner.set_revealed(False)
+        block, card = _group_block("This output")
+        card.append(
+            _static_check_row(
+                "PipeWire name",
+                sink.node_name or "Not in the graph",
+                Status.OK if sink.node_name else Status.WARN,
+            )
+        )
+        if sink.profile:
+            card.append(_static_check_row("Profile", sink.profile, Status.OK))
+        if sink.ports:
+            labels: list[str] = []
+            for port in sink.ports:
+                if sink.active_port and port == sink.active_port:
+                    labels.append(f"{port} (active)")
+                else:
+                    labels.append(port)
+            card.append(_static_check_row("Ports", ", ".join(labels), Status.OK))
+        else:
+            card.append(_static_check_row("Ports", "None reported", Status.WARN))
+        if not sink.is_loaded:
+            card.append(
+                _static_check_row(
+                    "In the graph",
+                    "This profile is not loaded. This app does not switch outputs.",
+                    Status.WARN,
+                )
+            )
+        elif sink.is_default:
+            card.append(
+                _static_check_row(
+                    "Default output",
+                    "PipeWire is using this sink. Selecting it here does not "
+                    "change that.",
+                    Status.OK,
+                )
+            )
+        else:
+            card.append(
+                _static_check_row(
+                    "Default output",
+                    "Not the current default. This app does not switch playback.",
+                    Status.OK,
+                )
+            )
         self._device_content.append(block)
 
     def _fill_card(self, card: Gtk.Box, results: tuple[CheckResult, ...]) -> None:

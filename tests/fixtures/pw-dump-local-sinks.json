@@ -1,0 +1,202 @@
+[
+  {
+    "id": 36,
+    "type": "PipeWire:Interface:Metadata",
+    "props": {
+      "metadata.name": "default"
+    },
+    "metadata": [
+      {
+        "key": "default.configured.audio.sink",
+        "value": {
+          "name": "raop_sink.aud8518sp2-slc-32b-c4a-user.local.192.168.1.102.7000"
+        }
+      },
+      {
+        "key": "default.audio.sink",
+        "value": {
+          "name": "alsa_output.pci-0000_0d_00.4.analog-stereo"
+        }
+      }
+    ]
+  },
+  {
+    "id": 80,
+    "type": "PipeWire:Interface:Device",
+    "info": {
+      "props": {
+        "device.description": "GA104 High Definition Audio Controller"
+      },
+      "params": {
+        "Route": [
+          {
+            "name": "hdmi-output-0",
+            "description": "HDMI / DisplayPort",
+            "direction": "Output",
+            "available": "yes"
+          }
+        ],
+        "EnumRoute": [
+          {
+            "name": "hdmi-output-0",
+            "description": "HDMI / DisplayPort",
+            "direction": "Output",
+            "available": "yes"
+          },
+          {
+            "name": "hdmi-output-1",
+            "description": "HDMI / DisplayPort 2",
+            "direction": "Output",
+            "available": "no"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": 79,
+    "type": "PipeWire:Interface:Device",
+    "info": {
+      "props": {
+        "device.description": "Starship/Matisse HD Audio Controller",
+        "device.name": "alsa_card.pci-0000_0d_00.4"
+      },
+      "params": {
+        "Profile": [
+          {
+            "index": 1,
+            "name": "output:analog-stereo+input:analog-stereo",
+            "description": "Analog Stereo Duplex"
+          }
+        ],
+        "EnumProfile": [
+          {
+            "index": 1,
+            "name": "output:analog-stereo+input:analog-stereo",
+            "description": "Analog Stereo Duplex"
+          },
+          {
+            "index": 2,
+            "name": "output:analog-stereo",
+            "description": "Analog Stereo Output"
+          },
+          {
+            "index": 3,
+            "name": "output:iec958-stereo+input:analog-stereo",
+            "description": "Digital Stereo (IEC958) Output + Analog Stereo Input"
+          },
+          {
+            "index": 4,
+            "name": "output:iec958-stereo",
+            "description": "Digital Stereo (IEC958) Output"
+          }
+        ],
+        "Route": [
+          {
+            "name": "analog-output-lineout",
+            "description": "Line Out",
+            "direction": "Output",
+            "available": "yes"
+          }
+        ],
+        "EnumRoute": [
+          {
+            "name": "analog-output-lineout",
+            "description": "Line Out",
+            "direction": "Output",
+            "available": "yes",
+            "profiles": [2, 1]
+          },
+          {
+            "name": "analog-output-headphones",
+            "description": "Headphones",
+            "direction": "Output",
+            "available": "no",
+            "profiles": [2, 1]
+          },
+          {
+            "name": "iec958-stereo-output",
+            "description": "Digital Output (S/PDIF)",
+            "direction": "Output",
+            "available": "unknown",
+            "profiles": [4, 3],
+            "info": [2, "port.type", "spdif"]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": 95,
+    "type": "PipeWire:Interface:Node",
+    "info": {
+      "props": {
+        "media.class": "Audio/Sink",
+        "node.name": "alsa_output.pci-0000_0b_00.1.hdmi-stereo",
+        "node.description": "GA104 High Definition Audio Controller Digital Stereo (HDMI)",
+        "node.nick": "MPG272UX OLED",
+        "factory.name": "api.alsa.pcm.sink",
+        "device.id": 80,
+        "device.profile.name": "hdmi-stereo",
+        "device.profile.description": "Digital Stereo (HDMI)"
+      }
+    }
+  },
+  {
+    "id": 91,
+    "type": "PipeWire:Interface:Node",
+    "info": {
+      "props": {
+        "media.class": "Audio/Sink",
+        "node.name": "alsa_output.pci-0000_0d_00.4.analog-stereo",
+        "node.description": "Starship/Matisse HD Audio Controller Analog Stereo",
+        "node.nick": "ALC897 Analog",
+        "factory.name": "api.alsa.pcm.sink",
+        "device.id": 79,
+        "device.profile.name": "analog-stereo",
+        "device.profile.description": "Analog Stereo",
+        "device.icon-name": "audio-card-analog-pci"
+      }
+    }
+  },
+  {
+    "id": 50,
+    "type": "PipeWire:Interface:Node",
+    "info": {
+      "props": {
+        "media.class": "Audio/Sink",
+        "node.name": "raop_sink.aud8518sp2-slc-32b-c4a-user.local.192.168.1.102.7000",
+        "node.description": "MagniFi Mini AX-4652",
+        "device.icon-name": "audio-speakers",
+        "sess.media": "raop",
+        "media.name": "RAOP to MagniFi Mini AX-4652"
+      }
+    }
+  },
+  {
+    "id": 49,
+    "type": "PipeWire:Interface:Port",
+    "info": {
+      "direction": "input",
+      "props": {
+        "port.name": "playback_FL",
+        "node.id": 91,
+        "audio.channel": "FL",
+        "port.id": 0
+      }
+    }
+  },
+  {
+    "id": 70,
+    "type": "PipeWire:Interface:Port",
+    "info": {
+      "direction": "input",
+      "props": {
+        "port.name": "playback_FR",
+        "node.id": 91,
+        "audio.channel": "FR",
+        "port.id": 1
+      }
+    }
+  }
+]

@@ -1,0 +1,66 @@
+[
+  {
+    "id": 1,
+    "type": "PipeWire:Interface:Metadata",
+    "info": {
+      "metadata": [
+        {
+          "key": "default.audio.sink",
+          "value": "{\"name\":\"alsa_output.usb-Generic_USB-00.analog-stereo\"}"
+        }
+      ]
+    }
+  },
+  {
+    "id": 12,
+    "type": "PipeWire:Interface:Node",
+    "info": {
+      "props": {
+        "media.class": "Audio/Sink",
+        "node.name": "alsa_output.usb-Generic_USB-00.analog-stereo",
+        "node.description": "USB Headset",
+        "factory.name": "api.alsa.pcm.sink",
+        "device.icon-name": "audio-headphones-symbolic"
+      }
+    }
+  },
+  {
+    "id": 13,
+    "type": "PipeWire:Interface:Port",
+    "info": {
+      "direction": "input",
+      "props": {
+        "port.name": "playback_FL",
+        "node.id": 12,
+        "audio.channel": "FL",
+        "port.id": 0
+      }
+    }
+  },
+  {
+    "id": 14,
+    "type": "PipeWire:Interface:Port",
+    "info": {
+      "direction": "output",
+      "props": {
+        "port.name": "monitor_FL",
+        "node.id": 12,
+        "audio.channel": "FL",
+        "port.id": 0
+      }
+    }
+  },
+  {
+    "id": 15,
+    "type": "PipeWire:Interface:Port",
+    "info": {
+      "direction": "input",
+      "props": {
+        "port.name": "playback_FR",
+        "node.id": 12,
+        "audio.channel": "FR",
+        "port.id": 1
+      }
+    }
+  }
+]
