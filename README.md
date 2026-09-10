@@ -6,6 +6,18 @@ Linux can send audio to AirPlay speakers via **RAOP (AirPlay 1)** but it's a con
 
 It does **not** implement an AirPlay receiver, screen mirroring, or AirPlay 2 sending.
 
+## Install on Ubuntu or Zorin
+
+CI builds a `.deb` on GitHub Actions (repo: [byintention/despairplay-gui](https://github.com/byintention/despairplay-gui)). Download `despairplay_*_all.deb` from the workflow artifact, then:
+
+```bash
+sudo apt install ./despairplay_0.1.0-1_all.deb
+```
+
+GTK/libadwaita come in as package dependencies. Remove with `sudo apt remove despairplay`.
+
+To run from a git checkout on this machine: `make install-dev` then `make run` (venv must be `--system-site-packages` so distro `gi` is visible).
+
 ## Requirements
 
 A computer running Ubuntu Linux with Gnome desktop. Maybe Debian, Zorin, Elementary etc will work. KDE probably won't. 

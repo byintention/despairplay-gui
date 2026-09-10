@@ -33,3 +33,29 @@ jobs:
 
       - name: Lint, typecheck, and test
         run: make check
+
+  deb:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Debian build tools
+        # CI runner only (ephemeral VM). Do not apt-install on the developer machine.
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            build-essential \
+            debhelper \
+            dh-python \
+            python3-all \
+            python3-hatchling \
+            pybuild-plugin-pyproject
+
+      - name: Build .deb
+        run: dpkg-buildpackage -us -uc -b
+
+      - name: Upload .deb
+        uses: actions/upload-artifact@v4
+        with:
+          name: despairplay.deb
+          path: ../despairplay_*_all.deb

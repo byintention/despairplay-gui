@@ -22,3 +22,14 @@ htmlcov/
 # OS
 .DS_Store
 Thumbs.db
+
+# Debian package build (local leftovers; CI builds in a clean runner)
+debian/.debhelper/
+debian/despairplay/
+debian/files
+debian/*.substvars
+debian/*.debhelper.log
+debian/debhelper-build-stamp
+*.deb
+*.buildinfo
+*.changes

@@ -1,0 +1,29 @@
+Source: despairplay
+Section: sound
+Priority: optional
+Maintainer: Intention <byintention@users.noreply.github.com>
+Build-Depends: debhelper-compat (= 13),
+               dh-python,
+               python3-all,
+               python3-hatchling,
+               pybuild-plugin-pyproject
+Standards-Version: 4.6.2
+Homepage: https://github.com/byintention/despairplay-gui
+Vcs-Git: https://github.com/byintention/despairplay-gui.git
+Vcs-Browser: https://github.com/byintention/despairplay-gui
+Rules-Requires-Root: no
+
+Package: despairplay
+Architecture: all
+Depends: ${python3:Depends},
+         ${misc:Depends},
+         python3-gi,
+         gir1.2-gtk-4.0,
+         gir1.2-adw-1,
+         gir1.2-glib-2.0
+Description: Diagnose Linux AirPlay (RAOP) sender setup
+ GTK4/libadwaita app that inspects the Linux AirPlay sender stack
+ (Avahi, PipeWire RAOP, firewall/mDNS).
+ .
+ Linux can send audio to AirPlay speakers via RAOP (AirPlay 1) only.
+ This package does not implement an AirPlay receiver or AirPlay 2 sending.

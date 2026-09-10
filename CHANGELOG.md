@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Overview **Network** checks: Avahi packages and daemon, nsswitch mDNS, UDP 5353, UFW/firewalld (no pkexec Fix yet), and a VPN-interface warning.
 - AirPlay sidebar lists `_raop._tcp` / `_airplay._tcp` devices from Avahi (D-Bus, with `avahi-browse -p` fallback). AirPlay 2-only speakers are a warning, not “install more packages”.
 - First-load skeleton uses the real status bar widgets (same height as Ready / Warnings). Overview checks, AirPlay, and This PC still skeleton until the first scan; later refreshes keep the last results.
+- CI builds a `.deb` (`despairplay_*_all.deb`) for Ubuntu/Zorin. GTK GI packages are apt dependencies.
 
 ### Changed
 

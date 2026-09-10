@@ -1,0 +1,11 @@
+tar-ignore = .venv
+tar-ignore = .pytest_cache
+tar-ignore = .mypy_cache
+tar-ignore = .ruff_cache
+tar-ignore = .coverage
+tar-ignore = htmlcov
+tar-ignore = dist
+tar-ignore = build
+tar-ignore = *.egg-info
+tar-ignore = .idea
+tar-ignore = .vscode

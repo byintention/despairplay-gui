@@ -52,6 +52,7 @@ include = [
     "/README.md",
     "/CHANGELOG.md",
     "/Makefile",
+    "/debian",
 ]
 
 [tool.ruff]
