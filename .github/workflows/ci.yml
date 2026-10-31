@@ -40,7 +40,6 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Install Debian build tools
-        # CI runner only (ephemeral VM). Do not apt-install on the developer machine.
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
@@ -54,8 +53,11 @@ jobs:
       - name: Build .deb
         run: dpkg-buildpackage -us -uc -b
 
+      - name: Move .deb to workspace
+        run: mv ../*.deb .
+
       - name: Upload .deb
         uses: actions/upload-artifact@v4
         with:
-          name: despairplay.deb
-          path: ../despairplay_*_all.deb
+          name: despairplay-deb
+          path: '*.deb'
