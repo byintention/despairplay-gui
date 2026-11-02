@@ -34,5 +34,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Repeated scans no longer allocate Avahi service browsers. One listener follows `_raop._tcp` and `_airplay._tcp` for the life of the app, so mDNS discovery keeps working instead of hitting avahi-daemon's per-client object limit.
 - Avahi D-Bus browse used the wrong `ServiceBrowserNew` signature, so discovery failed on every refresh. Missing `firewall-cmd` is ignored on Ubuntu instead of logging a warning.
 - This PC lists S/PDIF (and similar card outputs) when the jack exists but PipeWire has another profile loaded.

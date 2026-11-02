@@ -118,10 +118,6 @@ def find_raop_avail_template() -> Path | None:
 class LiveHost:
     """Talk to this machine. Not used by default pytest."""
 
-    def __init__(self) -> None:
-        self._avahi_fetched = False
-        self._avahi_records: tuple[MdnsRecord, ...] | None = None
-
     def user_unit_is_active(self, unit: str) -> bool:
         try:
             completed = subprocess.run(
@@ -346,9 +342,6 @@ class LiveHost:
             return ()
 
     def avahi_records(self) -> tuple[MdnsRecord, ...] | None:
-        if not self._avahi_fetched:
-            from despairplay.engine.avahi_browse import browse_avahi
+        from despairplay.engine.avahi_browse import shared_listener
 
-            self._avahi_records = browse_avahi()
-            self._avahi_fetched = True
-        return self._avahi_records
+        return shared_listener().records()

@@ -18,7 +18,9 @@ from despairplay.engine import (
     plan_user_fix,
     run_scan,
 )
+from despairplay.engine.avahi_browse import AvahiListener, shared_listener
 from despairplay.engine.host import LiveHost
+from despairplay.engine.mdns import group_devices
 from despairplay.ui.gi_imports import Adw, Gdk, GLib, Gtk, Pango
 
 log = logging.getLogger(__name__)
@@ -64,6 +66,14 @@ def _ellipsize_labels(widget: Gtk.Widget) -> None:
     while child is not None:
         _ellipsize_labels(child)
         child = child.get_next_sibling()
+
+
+def _airplay_subtitle(device: AirPlayDevice) -> str:
+    if device.airplay2_only:
+        return "AirPlay 2 only"
+    if device.address:
+        return f"{device.address}:{device.port}"
+    return ""
 
 
 def _muted_row(title: str, subtitle: str) -> Adw.ActionRow:
@@ -289,6 +299,10 @@ class MainWindow(Adw.ApplicationWindow):
         self._first_scan = True
         self._devices: tuple[AirPlayDevice, ...] = ()
         self._sinks: tuple[LocalSink, ...] = ()
+        self._sink_labels: tuple[str, ...] = ()
+        self._airplay_rows: dict[str, Adw.ActionRow] = {}
+        self._airplay_warn: dict[str, bool] = {}
+        self._airplay_placeholder: str | None = None
         self._selected_key = "overview"
         self._ready_bar = self._build_ready_bar()
         system_block, self._system_rows = _group_block("Audio system")
@@ -322,9 +336,14 @@ class MainWindow(Adw.ApplicationWindow):
         split.set_content(content)
         toast.set_child(split)
         self.set_content(toast)
+        self._listener: AvahiListener = shared_listener()
         self._timer_id = GLib.timeout_add_seconds(3, self._on_poll)
         self.connect("unmap", self._on_unmap)
         self._show_first_load_skeleton()
+        self._listener.set_on_change(self._on_discovery_changed)
+        self._listener.start()
+        if self._listener.records() is not None or self._listener.failed():
+            GLib.idle_add(self._sync_airplay_from_listener)
         self._start_scan()
 
     def _build_sidebar(self) -> Adw.ToolbarView:
@@ -451,7 +470,7 @@ class MainWindow(Adw.ApplicationWindow):
         self._guard = False
 
     def _on_refresh(self, _button: Gtk.Button) -> None:
-        self._start_scan()
+        self._start_scan(restart_discovery=True)
 
     def _on_poll(self) -> bool:
         if self.get_mapped() and not self._scan_busy:
@@ -463,7 +482,7 @@ class MainWindow(Adw.ApplicationWindow):
             GLib.source_remove(self._timer_id)
             self._timer_id = 0
 
-    def _start_scan(self) -> None:
+    def _start_scan(self, *, restart_discovery: bool = False) -> None:
         if self._scan_busy:
             return
         self._scan_busy = True
@@ -471,6 +490,8 @@ class MainWindow(Adw.ApplicationWindow):
 
         def work() -> None:
             try:
+                if restart_discovery:
+                    self._listener.restart()
                 result: ScanResult | BaseException = run_scan()
             except Exception as exc:
                 log.exception("Scan failed")
@@ -478,6 +499,9 @@ class MainWindow(Adw.ApplicationWindow):
             GLib.idle_add(self._apply_scan, result)
 
         threading.Thread(target=work, daemon=True).start()
+
+    def _on_discovery_changed(self) -> None:
+        GLib.idle_add(self._sync_airplay_from_listener)
 
     def _end_first_load(self) -> None:
         if not self._first_scan:
@@ -500,43 +524,142 @@ class MainWindow(Adw.ApplicationWindow):
             self._fill_card(self._system_rows, (failed,))
             return False
         self._end_first_load()
-        self._devices = payload.devices
         self._sinks = payload.sinks
-        self._fill_airplay_sidebar()
+        self._sink_labels = payload.sink_labels
         self._fill_this_pc_sidebar()
         system = tuple(item for item in payload.checks if item.group is Group.SYSTEM)
         network = tuple(item for item in payload.checks if item.group is Group.NETWORK)
         self._fill_card(self._system_rows, system)
         self._fill_card(self._network_rows, network)
-        self._update_banner(payload.checks, payload.devices)
+        self._sync_airplay_from_listener()
+        self._update_banner(payload.checks, self._devices)
         self._restore_selection()
         return False
 
-    def _fill_airplay_sidebar(self) -> None:
-        self._guard = True
-        _clear_list(self._airplay_list)
-        if not self._devices:
-            self._airplay_list.set_selection_mode(Gtk.SelectionMode.NONE)
-            self._airplay_list.append(
-                _muted_row(
-                    "No AirPlay speakers on the network.",
-                    "Nothing advertised via mDNS",
+    def _sync_airplay_from_listener(self) -> bool:
+        if self.in_destruction():
+            return False
+        records = self._listener.records()
+        if records is None:
+            if self._listener.failed():
+                self._show_airplay_placeholder(
+                    "Could not browse mDNS.",
+                    "Avahi discovery is not running",
                 )
-            )
-            self._guard = False
+            return False
+        self._diff_airplay(group_devices(records, self._sink_labels))
+        return False
+
+    def _show_airplay_placeholder(self, title: str, subtitle: str) -> None:
+        if (
+            self._airplay_placeholder == title
+            and not self._airplay_rows
+            and not self._devices
+        ):
             return
-        self._airplay_list.set_selection_mode(Gtk.SelectionMode.SINGLE)
-        for device in self._devices:
-            row = Adw.ActionRow(title=device.name)
-            row.add_prefix(Gtk.Image(icon_name="audio-speakers-symbolic"))
-            if device.airplay2_only:
-                row.set_subtitle("AirPlay 2 only")
-                row.add_suffix(Gtk.Image(icon_name="dialog-warning-symbolic"))
-            elif device.address:
-                row.set_subtitle(f"{device.address}:{device.port}")
-            _ellipsize_labels(row)
-            self._airplay_list.append(row)
+        self._guard = True
+        had_device = any(item.key == self._selected_key for item in self._devices)
+        _clear_list(self._airplay_list)
+        self._airplay_rows.clear()
+        self._airplay_warn.clear()
+        self._devices = ()
+        self._airplay_placeholder = title
+        self._airplay_list.set_selection_mode(Gtk.SelectionMode.NONE)
+        self._airplay_list.append(_muted_row(title, subtitle))
+        if had_device:
+            self._select_overview()
         self._guard = False
+
+    def _diff_airplay(self, devices: tuple[AirPlayDevice, ...]) -> None:
+        if not devices:
+            self._show_airplay_placeholder(
+                "No AirPlay speakers on the network.",
+                "Nothing advertised via mDNS",
+            )
+            return
+        previous = self._devices
+        self._guard = True
+        try:
+            self._airplay_placeholder = None
+            self._remove_stale_airplay_rows({item.key for item in devices})
+            self._airplay_list.set_selection_mode(Gtk.SelectionMode.SINGLE)
+            for index, device in enumerate(devices):
+                row = self._airplay_rows.get(device.key)
+                warn = device.airplay2_only
+                if row is None or self._airplay_warn.get(device.key) != warn:
+                    if row is not None:
+                        self._airplay_list.remove(row)
+                    row = self._new_airplay_row(device)
+                    self._airplay_rows[device.key] = row
+                    self._airplay_warn[device.key] = warn
+                    self._airplay_list.insert(row, index)
+                else:
+                    self._refresh_airplay_row(row, device)
+                    if row.get_index() != index:
+                        self._airplay_list.remove(row)
+                        self._airplay_list.insert(row, index)
+            self._devices = devices
+            self._sync_airplay_selection(previous, devices)
+        finally:
+            self._guard = False
+
+    def _remove_stale_airplay_rows(self, keys: set[str]) -> None:
+        for key in [key for key in self._airplay_rows if key not in keys]:
+            row = self._airplay_rows.pop(key)
+            self._airplay_warn.pop(key, None)
+            self._airplay_list.remove(row)
+        foreign: list[Gtk.ListBoxRow] = []
+        index = 0
+        tracked = list(self._airplay_rows.values())
+        while (row := self._airplay_list.get_row_at_index(index)) is not None:
+            if all(row is not item for item in tracked):
+                foreign.append(row)
+            index += 1
+        for row in foreign:
+            self._airplay_list.remove(row)
+
+    def _new_airplay_row(self, device: AirPlayDevice) -> Adw.ActionRow:
+        row = Adw.ActionRow(title=device.name)
+        row.add_prefix(Gtk.Image(icon_name="audio-speakers-symbolic"))
+        self._refresh_airplay_row(row, device)
+        if device.airplay2_only:
+            row.add_suffix(Gtk.Image(icon_name="dialog-warning-symbolic"))
+        _ellipsize_labels(row)
+        return row
+
+    def _refresh_airplay_row(self, row: Adw.ActionRow, device: AirPlayDevice) -> None:
+        row.set_title(device.name)
+        row.set_subtitle(_airplay_subtitle(device))
+
+    def _sync_airplay_selection(
+        self,
+        previous: tuple[AirPlayDevice, ...],
+        devices: tuple[AirPlayDevice, ...],
+    ) -> None:
+        selected = next(
+            (item for item in devices if item.key == self._selected_key), None
+        )
+        prior = next(
+            (item for item in previous if item.key == self._selected_key), None
+        )
+        if selected is None:
+            if prior is not None:
+                self._select_overview()
+            return
+        row = self._airplay_rows.get(selected.key)
+        if row is not None:
+            self._airplay_list.select_row(row)
+        if selected != prior:
+            self._show_device(selected)
+
+    def _select_overview(self) -> None:
+        self._selected_key = "overview"
+        self._airplay_list.unselect_all()
+        self._this_pc_list.unselect_all()
+        row = self._setup_list.get_row_at_index(0)
+        if row is not None:
+            self._setup_list.select_row(row)
+        self._show_overview()
 
     def _fill_this_pc_sidebar(self) -> None:
         self._guard = True

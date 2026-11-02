@@ -36,6 +36,7 @@ class ScanResult:
     checks: tuple[CheckResult, ...]
     devices: tuple[AirPlayDevice, ...]
     sinks: tuple[LocalSink, ...]
+    sink_labels: tuple[str, ...]
 
 
 def run_scan(host: Host | None = None) -> ScanResult:
@@ -58,7 +59,12 @@ def run_scan(host: Host | None = None) -> ScanResult:
     dump = probe.pw_dump_json()
     labels = raop_sink_labels(dump)
     devices = group_devices(records or (), labels) if records is not None else ()
-    return ScanResult(checks=checks, devices=devices, sinks=local_sinks(dump))
+    return ScanResult(
+        checks=checks,
+        devices=devices,
+        sinks=local_sinks(dump),
+        sink_labels=labels,
+    )
 
 
 def run_checks(host: Host | None = None) -> tuple[CheckResult, ...]:

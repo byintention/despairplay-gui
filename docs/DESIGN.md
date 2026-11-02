@@ -76,7 +76,7 @@ Selecting a row only **inspects**. It does **not** change the default sink (volu
 
 Prefer PipeWire `device.icon-name` / `media.icon-name` when it is a `*-symbolic` name from the theme; otherwise the table above.
 
-Refresh on a timer (~3s) for device appearance; full check suite on open and on Refresh. Narrow windows: `NavigationSplitView` collapsed (show sidebar or content, GNOME Settings behaviour).
+Refresh on a timer (~3s) for PipeWire sinks and the check suite. AirPlay speakers come from one long-lived Avahi service browser (`ItemNew` / `ItemRemove`). Full check suite on open and on Refresh. Refresh also frees that browser and opens one new pair. Narrow windows: `NavigationSplitView` collapsed (show sidebar or content, GNOME Settings behaviour).
 
 ## Checks (v1)
 

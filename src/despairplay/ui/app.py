@@ -6,6 +6,7 @@ import logging
 import sys
 
 from despairplay import __version__
+from despairplay.engine.avahi_browse import shared_listener
 from despairplay.ui.gi_imports import Adw, Gio
 from despairplay.ui.window import MainWindow
 
@@ -26,6 +27,12 @@ class Application(Adw.Application):
         if window is None:
             window = MainWindow(application=self)
         window.present()
+
+    def do_shutdown(self) -> None:
+        listener = shared_listener()
+        listener.set_on_change(None)
+        listener.stop()
+        Adw.Application.do_shutdown(self)
 
 
 def run(argv: list[str] | None = None) -> int:
