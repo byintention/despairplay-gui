@@ -1,12 +1,14 @@
 # DespairPlay GUI
 
+![Alt text](.github/despairplay-gui-screenshot-2026-11-09.png)
+
 GTK4 / libadwaita app that inspects the Linux **AirPlay sender** stack (Avahi, PipeWire RAOP, firewall/mDNS) and shows which parts of this confusing house of cards are installed and active.
 
 Linux can send audio to AirPlay speakers via **RAOP (AirPlay 1)** but it's a confusing mess. This app diagnoses potential issues instead of just shrugging and recommending “install more packages”. I spaffed this project out after sliding into despair tryng to understand why my soundbar stopped playing music one day. 
 
 It does **not** implement an AirPlay receiver, screen mirroring, or AirPlay 2 sending.
 
-## Install on Ubuntu or Zorin
+## Install on Ubuntu or Zorin - packaging is WIP
 
 CI builds a `.deb` on GitHub Actions (repo: [byintention/despairplay-gui](https://github.com/byintention/despairplay-gui)). Download `despairplay_*_all.deb` from the workflow artifact, then:
 
@@ -20,17 +22,17 @@ To run from a git checkout on this machine: `make install-dev` then `make run` (
 
 ## Requirements
 
-A computer running Ubuntu Linux with Gnome desktop. Maybe Debian, Zorin, Elementary etc will work. KDE probably won't. 
+A computer running Ubuntu/Zorin Linux with Gnome desktop. Maybe Debian, Elementary etc will work. Unsure about KDE compatability.
 
-Beyond that I honestly have no idea. I somehow got Airplay installed and working months ago by installing various packages. 
+Beyond that I honestly have no idea. I somehow got Airplay installed and working months ago on Ubuntu/Zorin by installing various packages. 
 
 The app needs GTK packages, but I think they were installed already. 
 
 Having an Airplay speaker probably helps. 
 
-Built and tested on Ubuntu 24/Gnome with Cursor doing the heavy lifting. 
+Built and tested on Ubuntu 24/Gnome with Cursor doing the heavy lifting. Definitely out of my depth here and still learning about GTK/packaging etc.
 
-**Note:** I also have 'Gnome Airplay Toggle' installed which complicates things. 'Gnome tweaks' seems pretty flaky and interfered with that.
+**Note:** I also have 'Gnome Airplay Toggle' installed which complicates things. 'Gnome tweaks' seems pretty flaky and sometimes turns Airplay speakers off.
 
 ## So, how does 'Airplay' work on Linux?
 
